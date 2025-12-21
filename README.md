@@ -40,17 +40,16 @@ The main focus of the project is **testability** and the application of various 
 ## 📂 Project Structure
 
 fitness-booking-api/
-│
 ├── app/
-│ ├── main.py
-│ └── domain/
-│ ├── pricing.py
-│ ├── refund.py
-│ └── reservation_rules.py
+│   ├── main.py
+│   └── domain/
+│       ├── pricing.py
+│       ├── refund.py
+│       └── reservation_rules.py
 │
 ├── tests/
-│ ├── unit/
-│ └── integration/
+│   ├── unit/
+│   └── integration/
 │
 ├── requirements.txt
 ├── pytest.ini
