@@ -1,0 +1,161 @@
+{
+  "info": {
+    "name": "Fitness Booking API",
+    "_postman_id": "f0a4d6a0-0000-0000-0000-000000000001",
+    "description": "Integration/API tests for Fitness Booking API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health",
+      "request": {
+        "method": "GET",
+        "url": { "raw": "{{baseUrl}}/health", "host": ["{{baseUrl}}"], "path": ["health"] }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Body has status=ok', function () { pm.response.to.have.jsonBody('status', 'ok'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Create Member (student)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"name\": \"Utku\",\n  \"membership\": \"student\"\n}" },
+        "url": { "raw": "{{baseUrl}}/members", "host": ["{{baseUrl}}"], "path": ["members"] }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+              "const json = pm.response.json();",
+              "pm.environment.set('memberId', json.id);",
+              "pm.test('memberId saved', function () { pm.expect(pm.environment.get('memberId')).to.exist; });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Create Class (capacity=1, tomorrow)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Yoga\",\n  \"instructor\": \"Ayse\",\n  \"capacity\": 1,\n  \"starts_at\": \"{{classStart}}\",\n  \"base_price\": 100\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/classes", "host": ["{{baseUrl}}"], "path": ["classes"] }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "const start = new Date(Date.now() + 30 * 60 * 60 * 1000);",
+              "pm.environment.set('classStart', start.toISOString());"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+              "const json = pm.response.json();",
+              "pm.environment.set('classId', json.id);",
+              "pm.test('classId saved', function () { pm.expect(pm.environment.get('classId')).to.exist; });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reserve (should succeed)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"member_id\": {{memberId}},\n  \"class_id\": {{classId}}\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/reservations", "host": ["{{baseUrl}}"], "path": ["reservations"] }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+              "const json = pm.response.json();",
+              "pm.environment.set('reservationId', json.id);",
+              "pm.environment.set('paidPrice', json.paid_price);",
+              "pm.test('reservationId saved', function () { pm.expect(pm.environment.get('reservationId')).to.exist; });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reserve again (should fail capacity full => 409)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"member_id\": {{memberId}},\n  \"class_id\": {{classId}}\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/reservations", "host": ["{{baseUrl}}"], "path": ["reservations"] }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 409', function () { pm.response.to.have.status(409); });",
+              "pm.test('Error message matches', function () { pm.expect(pm.response.json().detail).to.eql('class capacity full'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Cancel Reservation (refund invariant)",
+      "request": {
+        "method": "DELETE",
+        "url": {
+          "raw": "{{baseUrl}}/reservations/{{reservationId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["reservations", "{{reservationId}}"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+              "const json = pm.response.json();",
+              "const paid = parseFloat(pm.environment.get('paidPrice'));",
+              "pm.test('Cancelled true', function () { pm.expect(json.is_cancelled).to.eql(true); });",
+              "pm.test('Refund within bounds', function () { pm.expect(json.refund_amount).to.be.at.least(0); pm.expect(json.refund_amount).to.be.at.most(paid); });"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "http://127.0.0.1:8000" }
+  ]
+}

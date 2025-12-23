@@ -1,0 +1,3 @@
+Membership: standard, student, premium
+TimeSlot: offpeak, peak
+Occupancy: low, high

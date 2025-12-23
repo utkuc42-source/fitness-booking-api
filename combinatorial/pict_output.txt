@@ -1,0 +1,7 @@
+Membership	TimeSlot	Occupancy
+standard	peak	high
+standard	offpeak	low
+premium	peak	low
+student	offpeak	high
+student	peak	low
+premium	offpeak	high

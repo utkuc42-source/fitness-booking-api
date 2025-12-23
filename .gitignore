@@ -1,10 +1,26 @@
-.venv/
+# Python
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+
+# venv
+.venv/
+
+# Coverage
 htmlcov/
 .coverage
-.mutmut-cache/
-cosmic_ray.sqlite
-mutation_report.html
+coverage.xml
+
+# OS / Editor
 .DS_Store
-.env
+Thumbs.db
+.vscode/
+
+# Cosmic Ray session (istersen repo'ya koyma)
+cosmic_ray.sqlite
+
+# Reports
+mutation_report.html
